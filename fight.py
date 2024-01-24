@@ -41,6 +41,40 @@ def load_level(filename):
     return level_map
 
 
+def game_over_screen():
+    game_over_text = ['Вы проиграли', '',
+                      'Не растраивайтесь!!!',
+                      'И попробуйте ещё раз']
+    screen.fill('#000000')
+
+    font = pygame.font.Font(None, 30)
+    main_font = pygame.font.Font(None, 100)
+    text_coord = 50
+    main_text = main_font.render(game_over_text[0], 1, pygame.Color('red'))
+    text_rect = main_text.get_rect()
+    text_rect.top = 20
+    text_rect.right = 600
+    screen.blit(main_text, text_rect)
+    for line in game_over_text[1::]:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                return
+
+        pygame.display.flip()
+        clock.tick(10)
+
+
 tile_image = {'sky': load_image('fon.jpg'),
               'ground': load_image('grass.png'),
               'box': load_image('box.png'),
