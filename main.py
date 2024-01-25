@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-
-import pygame
-
-print('GitHubTest')
 import pygame
 import os
 import sys
@@ -112,9 +107,9 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self):
-        if pygame.sprite.spritecollideany(self, ground_group) is None:
+        if pygame.sprite.spritecollideany(self, ground_group) is None and pygame.sprite.spritecollideany(self,
+                                                                                                        wall_group) is None:
             self.rect = self.rect.move(0, GRAVITY)
-
 
 
 player = None
@@ -152,6 +147,16 @@ class Camera:
         self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
 
 
+def horizontal_movement(player, vector):
+    player.rect.right += player_move_speed * vector
+    for sprite in pygame.sprite.spritecollide(player, wall_group, 0):
+        if sprite.rect.top < player.rect.bottom - 5:
+            if vector > 0:
+                player.rect.right = sprite.rect.left
+            elif vector < 0:
+                player.rect.left = sprite.rect.right
+
+
 if __name__ == '__main__':
     player, level_x, level_y = generate_level(load_level('level.txt'))
     camera = Camera()
@@ -165,35 +170,25 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
 
-
-
-
-
-
         if player is not None:
             keys = pygame.key.get_pressed()
 
-            if pygame.sprite.spritecollideany(player, wall_group) is None:
-                if keys[pygame.K_LEFT]:
-                    if vector == 1:
-                        vector *= -1
-                        player.image = pygame.transform.flip(player.image, True, False)
-                    player.rect.right -= player_move_speed
-                    if pygame.sprite.spritecollideany(player, wall_group):
-                        player.rect.right += player_move_speed
-                elif keys[pygame.K_RIGHT]:
-                    if vector == -1:
-                        vector *= -1
-                        player.image = pygame.transform.flip(player.image, True, False)
-                    player.rect.right += player_move_speed
-                    if pygame.sprite.spritecollideany(player, wall_group):
-                        player.rect.right -= player_move_speed
-                if keys[pygame.K_UP]:
-                    vspeed = 20
-                    player.rect.top -= vspeed
-                    OnGround = False
-                    if OnGround == False:
-                         vspeed += GRAVITY
+            if keys[pygame.K_LEFT]:
+                if vector == 1:
+                    vector *= -1
+                    player.image = pygame.transform.flip(player.image, True, False)
+                horizontal_movement(player, vector)
+            elif keys[pygame.K_RIGHT]:
+                if vector == -1:
+                    vector *= -1
+                    player.image = pygame.transform.flip(player.image, True, False)
+                horizontal_movement(player, vector)
+            if keys[pygame.K_UP]:
+                vspeed = 20
+                player.rect.top -= vspeed
+                OnGround = False
+                if OnGround == False:
+                    vspeed += GRAVITY
 
         camera.update(player)
         for sprite in all_sprites:
@@ -207,9 +202,3 @@ if __name__ == '__main__':
         clock.tick(FPS)
         pygame.display.flip()
     pygame.quit()
-
-=======
-import pygame
-
-print('GitHubTest')
->>>>>>> 6246624 (GitHubTest)
