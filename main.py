@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+from fight import main as fight_func
 
 pygame.init()
 size = WIDTH, HEIGHT = 800, 400
@@ -81,6 +82,7 @@ tile_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
 ground_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
+ui_group = pygame.sprite.Group()
 
 
 class Tile(pygame.sprite.Sprite):
@@ -105,10 +107,11 @@ class Player(pygame.sprite.Sprite):
         super().__init__(player_group, all_sprites)
         self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
+        self.hp = 3
 
     def update(self):
         if pygame.sprite.spritecollideany(self, ground_group) is None and pygame.sprite.spritecollideany(self,
-                                                                                                        wall_group) is None:
+                                                                                                         wall_group) is None:
             self.rect = self.rect.move(0, GRAVITY)
 
 
@@ -157,12 +160,52 @@ def horizontal_movement(player, vector):
                 player.rect.left = sprite.rect.right
 
 
+def initUI():
+    x = 10
+    for i in range(player.hp):
+        hp1 = pygame.sprite.Sprite(ui_group)
+        hp1.image = load_image('bomb.png')
+        hp1.rect = hp1.image.get_rect()
+        hp1.rect.x = x
+        hp1.rect.y = 10
+        x += 50
+        hps.append(hp1)
+
+
+def game_over_panel():
+    intro_text = ['Вы проиграли', '',
+                  'Не растраивайтесь!!!',
+                  'И попробуйте ещё']
+    screen.fill('#000000')
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                pass
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 if __name__ == '__main__':
     player, level_x, level_y = generate_level(load_level('level.txt'))
     camera = Camera()
 
     start_screen()
     running = True
+    hps = []
+    initUI()
 
     vector = -1
     while running:
@@ -172,7 +215,16 @@ if __name__ == '__main__':
 
         if player is not None:
             keys = pygame.key.get_pressed()
-
+            # начало боя
+            if pygame.sprite.spritecollideany(player, enemy_group):
+                pygame.sprite.spritecollideany(player, enemy_group).kill()
+                damage = fight_func()
+                player.hp -= damage
+                if damage:
+                    hps.pop().kill()
+                if player.hp == 0:
+                    game_over_panel()
+            # перемещение
             if keys[pygame.K_LEFT]:
                 if vector == 1:
                     vector *= -1
@@ -198,6 +250,7 @@ if __name__ == '__main__':
         all_sprites.update()
         tile_group.draw(screen)
         player_group.draw(screen)
+        ui_group.draw(screen)
 
         clock.tick(FPS)
         pygame.display.flip()

@@ -123,7 +123,6 @@ def defeat_enemy(enemy):
     enemies -= 1
 
 
-
 def main():
     global player
     global enemies
