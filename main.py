@@ -1,6 +1,8 @@
-import pygame
 import os
 import sys
+
+import pygame
+
 from fight import main as fight_func
 
 pygame.init()
@@ -159,9 +161,11 @@ def horizontal_movement(player, vector):
                 player.rect.left = sprite.rect.right
 
 
-def initUI():
+def initUI(player):
+    global hps
     x = 10
     for i in range(player.hp):
+        print('Hello')
         hp1 = pygame.sprite.Sprite(ui_group)
         hp1.image = load_image('bomb.png')
         hp1.rect = hp1.image.get_rect()
@@ -169,6 +173,21 @@ def initUI():
         hp1.rect.y = 10
         x += 50
         hps.append(hp1)
+
+
+def restart():
+    global vector
+    global hps
+
+    for sprite in all_sprites.sprites():
+        sprite.kill()
+    screen.fill('#0ec3ff')
+    player, level_x, level_y = generate_level(load_level('level.txt'))
+    player.hp = 3
+    vector = -1
+    hps = []
+    initUI(player)
+    return player, level_x, level_y
 
 
 def game_over_panel():
@@ -192,7 +211,7 @@ def game_over_panel():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                pass
+                return restart()
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -218,7 +237,7 @@ if __name__ == '__main__':
     start_screen()
     running = True
     hps = []
-    initUI()
+    initUI(player)
 
     vector = -1
     while running:
@@ -236,7 +255,7 @@ if __name__ == '__main__':
                 if damage:
                     hps.pop().kill()
                 if player.hp == 0:
-                    game_over_panel()
+                    player, level_x, level_y = game_over_panel()
             # перемещение
             if keys[pygame.K_LEFT]:
                 if vector == 1:
