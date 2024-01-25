@@ -93,8 +93,6 @@ class Tile(pygame.sprite.Sprite):
             wall_group.add(self)
         if tile_type == 'ground':
             ground_group.add(self)
-        if tile_type == 'enemy':
-            enemy_group.add(self)
 
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
@@ -123,16 +121,17 @@ def generate_level(level):
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
-                Tile('sky', x, y)
+                pass
             elif level[y][x] == '#':
                 Tile('ground', x, y)
             elif level[y][x] == '%':
                 Tile('box', x, y)
             elif level[y][x] == '@':
-                Tile('sky', x, y)
+
                 new_player = Player(x, y)
             elif level[y][x] == 'E':
-                Tile('enemy', x, y)
+
+                Enemy(x, y)
     return new_player, x, y
 
 
@@ -198,6 +197,20 @@ def game_over_panel():
         clock.tick(FPS)
 
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(enemy_group, all_sprites)
+        self.image = player_image
+        self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 10)
+        self.speed = -1
+
+    def update(self):
+        if pygame.sprite.spritecollideany(self, wall_group):
+            self.speed *= -1
+            self.image = pygame.transform.flip(self.image, True, False)
+        self.rect.right += self.speed
+
+
 if __name__ == '__main__':
     player, level_x, level_y = generate_level(load_level('level.txt'))
     camera = Camera()
@@ -251,6 +264,7 @@ if __name__ == '__main__':
         tile_group.draw(screen)
         player_group.draw(screen)
         ui_group.draw(screen)
+        enemy_group.draw(screen)
 
         clock.tick(FPS)
         pygame.display.flip()
