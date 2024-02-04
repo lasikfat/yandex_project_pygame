@@ -76,7 +76,7 @@ tile_image = {'sky': load_image('fon.jpg'),
               'box': load_image('box.png'),
               'enemy': load_image('mar.png')}
 
-player_image = load_image('mar.png')
+
 player_images =  [
     load_image("data/gg/gg1.png"), load_image("data/gg/gg2.png"),
     load_image("data/gg/gg3.png"), load_image("data/gg/gg4.png"),
@@ -88,6 +88,7 @@ wall_group = pygame.sprite.Group()
 ground_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 ui_group = pygame.sprite.Group()
+player_images_number = 0
 
 
 class Tile(pygame.sprite.Sprite):
@@ -108,7 +109,7 @@ player_group = pygame.sprite.Group()
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        self.image = player_image
+        self.image = player_images[player_images_number]
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
         self.hp = 3
 
@@ -205,7 +206,7 @@ def game_over_panel():
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(enemy_group, all_sprites)
-        self.image = player_image
+        self.image = player_images[0]
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 10)
         self.speed = -1
 
@@ -246,19 +247,26 @@ if __name__ == '__main__':
             if keys[pygame.K_LEFT]:
                 if vector == 1:
                     vector *= -1
-                    player.image = pygame.transform.flip(player.image, True, False)
+                    player.images[player_images_number] = pygame.transform.flip(player.images[player_images_number], True, False)
+                    player_images_number += 1
                 horizontal_movement(player, vector)
             elif keys[pygame.K_RIGHT]:
                 if vector == -1:
                     vector *= -1
-                    player.image = pygame.transform.flip(player.image, True, False)
+                    player.image[player_images_number]= pygame.transform.flip(player.images[player_images_number], True, False)
+                    player_images_number += 1
                 horizontal_movement(player, vector)
-            if keys[pygame.K_UP]:
+            elif keys[pygame.K_UP]:
                 vspeed = 20
                 player.rect.top -= vspeed
                 OnGround = False
                 if OnGround == False:
                     vspeed += GRAVITY
+            else:
+                player_images_number = 0
+
+            if player_images_number > 5:
+                player_images_number = 0
 
         camera.update(player)
         for sprite in all_sprites:
