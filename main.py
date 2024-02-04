@@ -1,9 +1,6 @@
+import pygame
 import os
 import sys
-import random
-
-import pygame
-
 from fight import main as fight_func
 
 pygame.init()
@@ -15,7 +12,6 @@ clock = pygame.time.Clock()
 player_move_speed = 5
 GRAVITY = 5
 vspeed = 20
-MAX_PLAYER_HP = 3
 OnGround = True
 
 
@@ -78,11 +74,14 @@ def load_level(filename):
 tile_image = {'sky': load_image('fon.jpg'),
               'ground': load_image('grass.png'),
               'box': load_image('box.png'),
-              'enemy': load_image('mar.png'),
-              'loot_box': load_image('box.png'),
-              'health': load_image('bomb.png')}
+              'enemy': load_image('mar.png')}
 
 player_image = load_image('mar.png')
+player_images =  [
+    load_image("data/gg/gg1.png"), load_image("data/gg/gg2.png"),
+    load_image("data/gg/gg3.png"), load_image("data/gg/gg4.png"),
+    load_image("data/gg/gg5.png"),
+]
 tile_width = tile_height = 50
 tile_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
@@ -99,8 +98,6 @@ class Tile(pygame.sprite.Sprite):
             wall_group.add(self)
         if tile_type == 'ground':
             ground_group.add(self)
-        if tile_type == 'loot_box':
-            wall_group.add(self)
 
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
@@ -113,12 +110,9 @@ class Player(pygame.sprite.Sprite):
         super().__init__(player_group, all_sprites)
         self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
-        self.hp = MAX_PLAYER_HP
+        self.hp = 3
 
     def update(self):
-        for sprite in pygame.sprite.spritecollide(player, wall_group, 0):
-            if sprite.rect.bottom < player.rect.top + 16:
-                player.rect.top = sprite.rect.bottom
         if pygame.sprite.spritecollideany(self, ground_group) is None and pygame.sprite.spritecollideany(self,
                                                                                                          wall_group) is None:
             self.rect = self.rect.move(0, GRAVITY)
@@ -138,11 +132,11 @@ def generate_level(level):
             elif level[y][x] == '%':
                 Tile('box', x, y)
             elif level[y][x] == '@':
+
                 new_player = Player(x, y)
             elif level[y][x] == 'E':
+
                 Enemy(x, y)
-            elif level[y][x] == '?':
-                LootBox(x, y)
     return new_player, x, y
 
 
@@ -170,8 +164,7 @@ def horizontal_movement(player, vector):
                 player.rect.left = sprite.rect.right
 
 
-def initUI(player):
-    global hps
+def initUI():
     x = 10
     for i in range(player.hp):
         hp1 = pygame.sprite.Sprite(ui_group)
@@ -181,33 +174,6 @@ def initUI(player):
         hp1.rect.y = 10
         x += 50
         hps.append(hp1)
-
-
-def update_UI(current_hp):
-    global hps
-    x = 10 + 50 * player.hp
-    hp1 = pygame.sprite.Sprite(ui_group)
-    hp1.image = load_image('bomb.png')
-    hp1.rect = hp1.image.get_rect()
-    hp1.rect.x = x
-    hp1.rect.y = 10
-    x += 50
-    hps.append(hp1)
-
-
-def restart():
-    global vector
-    global hps
-
-    for sprite in all_sprites.sprites():
-        sprite.kill()
-    screen.fill('#0ec3ff')
-    player, level_x, level_y = generate_level(load_level('level.txt'))
-    player.hp = 3
-    vector = -1
-    hps = []
-    initUI(player)
-    return player, level_x, level_y
 
 
 def game_over_panel():
@@ -231,7 +197,7 @@ def game_over_panel():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return restart()
+                pass
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -250,41 +216,6 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.right += self.speed
 
 
-class LootBox(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
-        super().__init__(wall_group, all_sprites)
-        self.image = tile_image['loot_box']
-        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
-
-    def update(self):
-        global player
-
-        if pygame.sprite.spritecollideany(self, player_group):
-            if self.rect.bottom < player.rect.top + 16:
-                chance = random.randint(0, 101)
-                if chance <= 20:
-                    Loot(self)
-                self.kill()
-
-
-class Loot(pygame.sprite.Sprite):
-    def __init__(self, box):
-        super().__init__(all_sprites)
-        self.image = tile_image['health']
-        self.rect = box.rect
-        self.rect.top = box.rect.bottom
-
-    def update(self):
-        if pygame.sprite.spritecollideany(self, wall_group) is None and \
-                pygame.sprite.spritecollideany(self, ground_group) is None:
-            self.rect.top += GRAVITY
-        if pygame.sprite.spritecollideany(self, player_group):
-            if player.hp < MAX_PLAYER_HP:
-                update_UI(player.hp + 1)
-                player.hp += 1
-                self.kill()
-
-
 if __name__ == '__main__':
     player, level_x, level_y = generate_level(load_level('level.txt'))
     camera = Camera()
@@ -292,7 +223,7 @@ if __name__ == '__main__':
     start_screen()
     running = True
     hps = []
-    initUI(player)
+    initUI()
 
     vector = -1
     while running:
@@ -310,7 +241,7 @@ if __name__ == '__main__':
                 if damage:
                     hps.pop().kill()
                 if player.hp == 0:
-                    player, level_x, level_y = game_over_panel()
+                    game_over_panel()
             # перемещение
             if keys[pygame.K_LEFT]:
                 if vector == 1:
