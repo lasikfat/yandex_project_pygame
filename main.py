@@ -1,6 +1,9 @@
-import pygame
 import os
 import sys
+import random
+
+import pygame
+
 from fight import main as fight_func
 
 pygame.init()
@@ -12,6 +15,7 @@ clock = pygame.time.Clock()
 player_move_speed = 5
 GRAVITY = 5
 vspeed = 20
+MAX_PLAYER_HP = 3
 OnGround = True
 
 
@@ -74,21 +78,21 @@ def load_level(filename):
 tile_image = {'sky': load_image('fon.jpg'),
               'ground': load_image('grass.png'),
               'box': load_image('box.png'),
-              'enemy': load_image('mar.png')}
+              'enemy': load_image('mar.png'),
+              'loot_box': load_image('box.png'),
+              'health': load_image('bomb.png'),
+              'money': load_image('money.png'),
+              'final': load_image('bomb.png')}
 
-
-player_images =  [
-    load_image("data/gg/gg1.png"), load_image("data/gg/gg2.png"),
-    load_image("data/gg/gg3.png"), load_image("data/gg/gg4.png"),
-    load_image("data/gg/gg5.png"),
-]
+player_image = load_image('mar.png')
 tile_width = tile_height = 50
 tile_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
 ground_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 ui_group = pygame.sprite.Group()
-player_images_number = 0
+money_group = pygame.sprite.Group()
+final_group = pygame.sprite.Group()
 
 
 class Tile(pygame.sprite.Sprite):
@@ -99,7 +103,13 @@ class Tile(pygame.sprite.Sprite):
             wall_group.add(self)
         if tile_type == 'ground':
             ground_group.add(self)
-
+        if tile_type == 'loot_box':
+            wall_group.add(self)
+        if tile_type == 'money':
+            money_group.add(self)
+            self.image = pygame.transform.scale(self.image, (tile_width, tile_height))
+        if tile_type == 'final':
+            final_group.add(self)
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
@@ -109,14 +119,20 @@ player_group = pygame.sprite.Group()
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        self.image = player_images[player_images_number]
+        self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
-        self.hp = 3
+        self.hp = MAX_PLAYER_HP
+        self.money = 0
 
     def update(self):
+        for sprite in pygame.sprite.spritecollide(player, wall_group, 0):
+            if sprite.rect.bottom < player.rect.top + 16:
+                player.rect.top = sprite.rect.bottom
         if pygame.sprite.spritecollideany(self, ground_group) is None and pygame.sprite.spritecollideany(self,
                                                                                                          wall_group) is None:
             self.rect = self.rect.move(0, GRAVITY)
+        if pygame.sprite.spritecollide(self, money_group, 1):
+            self.money += 1
 
 
 player = None
@@ -133,11 +149,15 @@ def generate_level(level):
             elif level[y][x] == '%':
                 Tile('box', x, y)
             elif level[y][x] == '@':
-
                 new_player = Player(x, y)
             elif level[y][x] == 'E':
-
                 Enemy(x, y)
+            elif level[y][x] == '?':
+                LootBox(x, y)
+            elif level[y][x] == '*':
+                Tile('money', x, y)
+            elif level[y][x] == 'O':
+                Tile('final', x, y)
     return new_player, x, y
 
 
@@ -165,7 +185,9 @@ def horizontal_movement(player, vector):
                 player.rect.left = sprite.rect.right
 
 
-def initUI():
+def initUI(player):
+    # hp
+    global hps
     x = 10
     for i in range(player.hp):
         hp1 = pygame.sprite.Sprite(ui_group)
@@ -175,6 +197,33 @@ def initUI():
         hp1.rect.y = 10
         x += 50
         hps.append(hp1)
+
+
+def update_UI(current_hp):
+    global hps
+    x = 10 + 50 * player.hp
+    hp1 = pygame.sprite.Sprite(ui_group)
+    hp1.image = load_image('bomb.png')
+    hp1.rect = hp1.image.get_rect()
+    hp1.rect.x = x
+    hp1.rect.y = 10
+    x += 50
+    hps.append(hp1)
+
+
+def restart(level):
+    global vector
+    global hps
+
+    for sprite in all_sprites.sprites():
+        sprite.kill()
+    screen.fill('#0ec3ff')
+    player, level_x, level_y = generate_level(load_level(level))
+    player.hp = 3
+    vector = -1
+    hps = []
+    initUI(player)
+    return player, level_x, level_y
 
 
 def game_over_panel():
@@ -198,7 +247,34 @@ def game_over_panel():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                pass
+                return restart('level.txt')
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+def next_level_panel():
+    global player
+    intro_text = ['Вы прошли уровень!!!',
+                  f'У Вас получилось набрать {str(player.money)} из {max_score} очков',
+                  'Нажимите любую кнопку, чтобы продолжить']
+    screen.fill('#000000')
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                return restart('level1.txt')
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -206,7 +282,7 @@ def game_over_panel():
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(enemy_group, all_sprites)
-        self.image = player_images[0]
+        self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 10)
         self.speed = -1
 
@@ -217,6 +293,41 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.right += self.speed
 
 
+class LootBox(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(wall_group, all_sprites)
+        self.image = tile_image['loot_box']
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+    def update(self):
+        global player
+
+        if pygame.sprite.spritecollideany(self, player_group):
+            if self.rect.bottom < player.rect.top + 16:
+                chance = random.randint(0, 101)
+                if chance <= 20:
+                    Loot(self)
+                self.kill()
+
+
+class Loot(pygame.sprite.Sprite):
+    def __init__(self, box):
+        super().__init__(all_sprites)
+        self.image = tile_image['health']
+        self.rect = box.rect
+        self.rect.top = box.rect.bottom
+
+    def update(self):
+        if pygame.sprite.spritecollideany(self, wall_group) is None and \
+                pygame.sprite.spritecollideany(self, ground_group) is None:
+            self.rect.top += GRAVITY
+        if pygame.sprite.spritecollideany(self, player_group):
+            if player.hp < MAX_PLAYER_HP:
+                update_UI(player.hp + 1)
+                player.hp += 1
+                self.kill()
+
+
 if __name__ == '__main__':
     player, level_x, level_y = generate_level(load_level('level.txt'))
     camera = Camera()
@@ -224,7 +335,11 @@ if __name__ == '__main__':
     start_screen()
     running = True
     hps = []
-    initUI()
+    initUI(player)
+
+    money_on_level = sum([x.count('*') for x in load_level('level.txt')])
+    enemy_on_level = sum([x.count('E') for x in load_level('level.txt')])
+    max_score = money_on_level + enemy_on_level * 2
 
     vector = -1
     while running:
@@ -241,32 +356,31 @@ if __name__ == '__main__':
                 player.hp -= damage
                 if damage:
                     hps.pop().kill()
+                    player.money -= 1
                 if player.hp == 0:
-                    game_over_panel()
+                    player, level_x, level_y = game_over_panel()
+                player.money += 2
             # перемещение
             if keys[pygame.K_LEFT]:
                 if vector == 1:
                     vector *= -1
-                    player.images[player_images_number] = pygame.transform.flip(player.images[player_images_number], True, False)
-                    player_images_number += 1
+                    player.image = pygame.transform.flip(player.image, True, False)
                 horizontal_movement(player, vector)
             elif keys[pygame.K_RIGHT]:
                 if vector == -1:
                     vector *= -1
-                    player.image[player_images_number]= pygame.transform.flip(player.images[player_images_number], True, False)
-                    player_images_number += 1
+                    player.image = pygame.transform.flip(player.image, True, False)
                 horizontal_movement(player, vector)
-            elif keys[pygame.K_UP]:
+            if keys[pygame.K_UP]:
                 vspeed = 20
                 player.rect.top -= vspeed
                 OnGround = False
                 if OnGround == False:
                     vspeed += GRAVITY
-            else:
-                player_images_number = 0
+            # переход на следующий уровень
+            if pygame.sprite.spritecollideany(player, final_group):
+                player, level_x, level_y = next_level_panel()
 
-            if player_images_number > 5:
-                player_images_number = 0
 
         camera.update(player)
         for sprite in all_sprites:
@@ -278,6 +392,10 @@ if __name__ == '__main__':
         player_group.draw(screen)
         ui_group.draw(screen)
         enemy_group.draw(screen)
+
+        font = pygame.font.Font(None, 50)
+        text = font.render(str(player.money), True, (0, 0, 0))
+        screen.blit(text, (750, 10))
 
         clock.tick(FPS)
         pygame.display.flip()
