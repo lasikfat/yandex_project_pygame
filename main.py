@@ -5,6 +5,8 @@ import pygame
 from fight import main as fight_func
 
 pygame.init()
+pygame.mixer.pre_init(44100, -16, 2, 2048)
+pygame.mixer.init()
 size = WIDTH, HEIGHT = 800, 400
 screen = pygame.display.set_mode(size)
 all_sprites = pygame.sprite.Group()
@@ -15,6 +17,11 @@ GRAVITY = 5
 vspeed = 20
 MAX_PLAYER_HP = 3
 OnGround = True
+musik = pygame.mixer.Sound("Fight_ad.wav")
+go = pygame.mixer.Sound("")
+musik.play(-1)
+
+
 
 
 def load_image(name, colorkey=None):
@@ -39,21 +46,9 @@ def terminate():
 
 
 def start_screen():
-    intro_text = ['Заставка', '',
-                  'Правила игры',
-                  'Здесь должны быть правила']
+
     background = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(background, (0, 0))
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
 
     while True:
         for event in pygame.event.get():
@@ -96,7 +91,10 @@ money_group = pygame.sprite.Group()
 final_group = pygame.sprite.Group()
 player_images_number = 0
 
+
+
 isRun = False
+
 
 
 class Tile(pygame.sprite.Sprite):
@@ -237,47 +235,23 @@ def restart(level):
 
 
 def game_over_panel():
-    intro_text = ['          GAME OVER', '',
-                  'Вы не смогли пройти этот уровень!!!',
-                  '        Попробуйте ещё']
-    screen.fill('#000000')
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
+    background = pygame.transform.scale(load_image('g_over.jpg'), (WIDTH, HEIGHT))
+    screen.blit(background, (0, 0))
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return restart('level1.txt')
+                return restart('level.txt')
         pygame.display.flip()
         clock.tick(FPS)
 
 
 def next_level_panel():
     global player
-    intro_text = ['                 Вы прошли уровень!!!',
-                  f'У Вас получилось набрать {str(player.money)} из {max_score} очков',
-                  '         Нажимите любую кнопку, чтобы продолжить']
-    screen.fill('#000000')
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
+    background = pygame.transform.scale(load_image('next.jpg'), (WIDTH, HEIGHT))
+    screen.blit(background, (0, 0))
 
     while True:
         for event in pygame.event.get():
