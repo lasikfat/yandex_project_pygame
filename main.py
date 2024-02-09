@@ -1,9 +1,7 @@
 import os
 import sys
 import random
-
 import pygame
-
 from fight import main as fight_func
 
 pygame.init()
@@ -83,8 +81,11 @@ tile_image = {'sky': load_image('fon.jpg'),
               'health': load_image('bomb.png'),
               'money': load_image('money.png'),
               'final': load_image('bomb.png')}
-
-player_image = load_image('mar.png')
+player_images = [
+    load_image("gg/gg1.png"), load_image("gg/gg2.png"),
+    load_image("gg/gg3.png"), load_image("gg/gg4.png"),
+    load_image("gg/gg5.png"),
+]
 tile_width = tile_height = 50
 tile_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
@@ -93,6 +94,9 @@ enemy_group = pygame.sprite.Group()
 ui_group = pygame.sprite.Group()
 money_group = pygame.sprite.Group()
 final_group = pygame.sprite.Group()
+player_images_number = 0
+
+isRun = False
 
 
 class Tile(pygame.sprite.Sprite):
@@ -119,18 +123,24 @@ player_group = pygame.sprite.Group()
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        self.image = player_image
+        self.image = player_images[player_images_number]
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
         self.hp = MAX_PLAYER_HP
         self.money = 0
+        self.cur_frame = 0
 
     def update(self):
+        if isRun:
+            self.cur_frame = (self.cur_frame + 1) % 5
+            self.image = player_images[self.cur_frame]
+
         for sprite in pygame.sprite.spritecollide(player, wall_group, 0):
             if sprite.rect.bottom < player.rect.top + 16:
                 player.rect.top = sprite.rect.bottom
-        if pygame.sprite.spritecollideany(self, ground_group) is None and pygame.sprite.spritecollideany(self,
-                                                                                                         wall_group) is None:
+
+        if pygame.sprite.spritecollideany(self, ground_group) is None and pygame.sprite.spritecollideany(self,                                                                     wall_group) is None:
             self.rect = self.rect.move(0, GRAVITY)
+
         if pygame.sprite.spritecollide(self, money_group, 1):
             self.money += 1
 
@@ -282,7 +292,7 @@ def next_level_panel():
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(enemy_group, all_sprites)
-        self.image = player_image
+        self.image = tile_image['enemy']
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 10)
         self.speed = -1
 
@@ -362,15 +372,19 @@ if __name__ == '__main__':
                 player.money += 2
             # перемещение
             if keys[pygame.K_LEFT]:
+                isRun = True
                 if vector == 1:
                     vector *= -1
                     player.image = pygame.transform.flip(player.image, True, False)
                 horizontal_movement(player, vector)
             elif keys[pygame.K_RIGHT]:
+                isRun = True
                 if vector == -1:
                     vector *= -1
                     player.image = pygame.transform.flip(player.image, True, False)
                 horizontal_movement(player, vector)
+            else:
+                isRun = False
             if keys[pygame.K_UP]:
                 vspeed = 20
                 player.rect.top -= vspeed
