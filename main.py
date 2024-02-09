@@ -237,9 +237,9 @@ def restart(level):
 
 
 def game_over_panel():
-    intro_text = ['Вы проиграли', '',
-                  'Не растраивайтесь!!!',
-                  'И попробуйте ещё']
+    intro_text = ['          GAME OVER', '',
+                  'Вы не смогли пройти этот уровень!!!',
+                  '        Попробуйте ещё']
     screen.fill('#000000')
     font = pygame.font.Font(None, 30)
     text_coord = 50
@@ -257,16 +257,16 @@ def game_over_panel():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return restart('level.txt')
+                return restart('level1.txt')
         pygame.display.flip()
         clock.tick(FPS)
 
 
 def next_level_panel():
     global player
-    intro_text = ['Вы прошли уровень!!!',
+    intro_text = ['                 Вы прошли уровень!!!',
                   f'У Вас получилось набрать {str(player.money)} из {max_score} очков',
-                  'Нажимите любую кнопку, чтобы продолжить']
+                  '         Нажимите любую кнопку, чтобы продолжить']
     screen.fill('#000000')
     font = pygame.font.Font(None, 30)
     text_coord = 50
