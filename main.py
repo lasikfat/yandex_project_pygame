@@ -18,10 +18,10 @@ vspeed = 20
 MAX_PLAYER_HP = 3
 OnGround = True
 running = False
-musik = pygame.mixer.Sound("data/Fight_ad.wav")
-run_ad = pygame.mixer.Sound("data/Run_ad.wav")
-final_ad = pygame.mixer.Sound("data/final.wav")
-game_over_ad = pygame.mixer.Sound("data/GameOver.wav")
+musik = pygame.mixer.Sound("data/audio/Fight_ad.wav")
+run_ad = pygame.mixer.Sound("data/audio/Run_ad.wav")
+final_ad = pygame.mixer.Sound("data/audio/final.wav")
+game_over_ad = pygame.mixer.Sound("data/audio/GameOver.wav")
 
 musik.play(-1)
 musik.set_volume(0.2)
@@ -49,7 +49,7 @@ def terminate():
 
 
 def start_screen():
-    background = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
+    background = pygame.transform.scale(load_image('images/fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(background, (0, 0))
 
     while True:
@@ -81,20 +81,20 @@ def cut_sheet(sheet, columns, rows):
     return frames
 
 
-tile_image = {'sky': load_image('fon.jpg'),
-              'ground': load_image('grass.png'),
-              'box': load_image('box.png'),
-              'enemy': load_image('mar.png'),
-              'loot_box': load_image('box.png'),
-              'health': load_image('life.png'),
-              'money': load_image('coin.png'),
-              'final': load_image('bomb.png')}
+tile_image = {'sky': load_image('images/fon.jpg'),
+              'ground': load_image('images/grass.png'),
+              'box': load_image('images/box.png'),
+              'enemy': load_image('images/mar.png'),
+              'loot_box': load_image('images/box.png'),
+              'health': load_image('images/life.png'),
+              'money': load_image('images/coin.png'),
+              'final': load_image('images/bomb.png')}
 # player_images = [
 #     load_image("gg/gg1.png"), load_image("gg/gg2.png"),
 #     load_image("gg/gg3.png"), load_image("gg/gg4.png"),
 #     load_image("gg/gg5.png"),
 # ]
-player_images = cut_sheet(load_image('gg_go.png'), 9, 1)
+player_images = cut_sheet(load_image('images/gg_go.png'), 9, 1)
 tile_width = tile_height = 50
 tile_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
@@ -129,58 +129,7 @@ class Tile(pygame.sprite.Sprite):
 player_group = pygame.sprite.Group()
 
 
-screen_rect = (0, 0, width, height)
-class Particle(pygame.sprite.Sprite):
-    # сгенерируем частицы разного размера
-    fire = [load_image("star.png")]
-    for scale in (5, 10, 20):
-        fire.append(pygame.transform.scale(fire[0], (scale, scale)))
 
-    def __init__(self, pos, dx, dy):
-        super().__init__(all_sprites)
-        self.image = random.choice(self.fire)
-        self.rect = self.image.get_rect()
-
-        # у каждой частицы своя скорость — это вектор
-        self.velocity = [dx, dy]
-        # и свои координаты
-        self.rect.x, self.rect.y = pos
-
-        # гравитация будет одинаковой (значение константы)
-        self.gravity = GRAVITY
-
-    def update(self):
-        # применяем гравитационный эффект:
-        # движение с ускорением под действием гравитации
-        self.velocity[1] += self.gravity
-        # перемещаем частицу
-        self.rect.x += self.velocity[0]
-        self.rect.y += self.velocity[1]
-        # убиваем, если частица ушла за экран
-        if not self.rect.colliderect(self.rect):
-            self.kill()
-
-    def create_particles(position):
-        # количество создаваемых частиц
-        particle_count = 20
-        # возможные скорости
-        numbers = range(-5, 6)
-        for _ in range(particle_count):
-            Particle(position, random.choice(numbers), random.choice(numbers)
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # создаём частицы по щелчку мыши
-                create_particles(pygame.mouse.get_pos())
-
-        all_sprites.update()
-        screen.fill((0, 0, 0))
-        all_sprites.draw(screen)
-        pygame.display.flip()
-        clock.tick(50)
 
 
 
@@ -268,7 +217,7 @@ def initUI(player):
     x = 10
     for i in range(player.hp):
         hp1 = pygame.sprite.Sprite(ui_group)
-        hp1.image = load_image('life.png')
+        hp1.image = load_image('images/life.png')
         hp1.rect = hp1.image.get_rect()
         hp1.rect.x = x
         hp1.rect.y = 10
@@ -280,7 +229,7 @@ def update_UI(current_hp):
     global hps
     x = 10 + 50 * player.hp
     hp1 = pygame.sprite.Sprite(ui_group)
-    hp1.image = load_image('life.png')
+    hp1.image = load_image('images/life.png')
     hp1.rect = hp1.image.get_rect()
     hp1.rect.x = x
     hp1.rect.y = 10
@@ -306,7 +255,7 @@ def restart(level):
 def game_over_panel():
     game_over_ad.play()
     game_over_ad.set_volume(0.5)
-    background = pygame.transform.scale(load_image('g_over.png'), (WIDTH, HEIGHT))
+    background = pygame.transform.scale(load_image('images/g_over.png'), (WIDTH, HEIGHT))
     screen.blit(background, (0, 0))
 
     while True:
@@ -314,14 +263,14 @@ def game_over_panel():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return restart('level.txt')
+                return restart('level/level.txt')
         pygame.display.flip()
         clock.tick(FPS)
 
 
 def next_level_panel():
     global player
-    background = pygame.transform.scale(load_image('next.png'), (WIDTH, HEIGHT))
+    background = pygame.transform.scale(load_image('images/next.png'), (WIDTH, HEIGHT))
     screen.blit(background, (0, 0))
 
     musik.stop()
@@ -340,7 +289,7 @@ def next_level_panel():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return restart('level1.txt')
+                return restart('level/level1.txt')
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -395,7 +344,7 @@ class Loot(pygame.sprite.Sprite):
 
 
 if __name__ == '__main__':
-    player, level_x, level_y = generate_level(load_level('level.txt'))
+    player, level_x, level_y = generate_level(load_level('level/level.txt'))
     camera = Camera()
 
     start_screen()
@@ -403,8 +352,8 @@ if __name__ == '__main__':
     hps = []
     initUI(player)
 
-    money_on_level = sum([x.count('*') for x in load_level('level.txt')])
-    enemy_on_level = sum([x.count('E') for x in load_level('level.txt')])
+    money_on_level = sum([x.count('*') for x in load_level('level/level.txt')])
+    enemy_on_level = sum([x.count('E') for x in load_level('level/level.txt')])
     max_score = money_on_level + enemy_on_level * 2
 
     vector = -1

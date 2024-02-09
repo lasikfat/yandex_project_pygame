@@ -12,8 +12,8 @@ FPS = 60
 clock = pygame.time.Clock()
 player_move_speed = 50
 GRAVITY = 0
-fight_ad = pygame.mixer.Sound("data/mar_ad.wav")
-boom_ad = pygame.mixer.Sound("data/boom.wav")
+fight_ad = pygame.mixer.Sound("data/audio/mar_ad.wav")
+boom_ad = pygame.mixer.Sound("data/audio/boom.wav")
 
 
 
@@ -46,13 +46,13 @@ def load_level(filename):
     return level_map
 
 
-tile_image = {'sky': load_image('fon.jpg'),
-              'ground': load_image('grass.png'),
-              'box': load_image('box.png'),
-              'enemy': load_image('mar.png'),
-              'trap': load_image('bomb.png')}
+tile_image = {'sky': load_image('images/fon.jpg'),
+              'ground': load_image('images/grass.png'),
+              'box': load_image('images/box.png'),
+              'enemy': load_image('images/mar.png'),
+              'trap': load_image('images/bomb.png')}
 
-player_image = load_image('mar.png')
+player_image = load_image('images/mar.png')
 tile_width = tile_height = 50
 tile_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
