@@ -3,8 +3,6 @@ import os
 import sys
 
 pygame.init()
-pygame.mixer.pre_init(44100, -16, 2, 2048)
-pygame.mixer.init()
 size = WIDTH, HEIGHT = 800, 400
 screen = pygame.display.set_mode(size)
 all_sprites = pygame.sprite.Group()
@@ -12,9 +10,6 @@ FPS = 60
 clock = pygame.time.Clock()
 player_move_speed = 50
 GRAVITY = 0
-fight_ad = pygame.mixer.Sound("data/mar_ad.wav")
-boom_ad = pygame.mixer.Sound("data/boom.wav")
-
 
 
 def load_image(name, colorkey=None):
@@ -131,8 +126,6 @@ def defeat_enemy(enemy):
 def main():
     global player
     global enemies
-    fight_ad.play(-1)
-    fight_ad.set_volume(0.2)
 
     player, level_x, level_y = generate_level(load_level('fight.txt'))
 
@@ -144,7 +137,6 @@ def main():
     while running:
         if enemies == 0:
             player.kill()
-            fight_ad.stop()
             return 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -182,9 +174,7 @@ def main():
                         defeat_enemy(pygame.sprite.spritecollideany(player, enemy_group))
                     player.rect.top -= player_move_speed
             if pygame.sprite.spritecollideany(player, trap_group):
-                boom_ad.play()
                 player.kill()
-                fight_ad.stop()
                 return 1
 
         screen.fill('#0ec3ff')
