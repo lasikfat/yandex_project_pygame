@@ -84,11 +84,11 @@ def cut_sheet(sheet, columns, rows):
 tile_image = {'sky': load_image('fon.jpg'),
               'ground': load_image('grass.png'),
               'box': load_image('box.png'),
-              'enemy': load_image('mar.png'),
+              'enemy': load_image('mar1.png'),
               'loot_box': load_image('box.png'),
               'health': load_image('life.png'),
               'money': load_image('coin.png'),
-              'final': load_image('bomb.png')}
+              'final': load_image('star.png')}
 # player_images = [
 #     load_image("gg/gg1.png"), load_image("gg/gg2.png"),
 #     load_image("gg/gg3.png"), load_image("gg/gg4.png"),
@@ -129,10 +129,6 @@ class Tile(pygame.sprite.Sprite):
 player_group = pygame.sprite.Group()
 
 
-
-
-
-
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
@@ -142,7 +138,16 @@ class Player(pygame.sprite.Sprite):
         self.money = 0
         self.cur_frame = 0
 
+        self.vector = 1
+        self.isTurn = False
+
     def update(self):
+        global player_images
+
+        if self.vector == -1 and self.isTurn is False or self.vector == 1 and self.isTurn is True:
+            for i, j in enumerate(player_images):
+                player_images[i] = pygame.transform.flip(j, True, False)
+            self.isTurn = not self.isTurn
 
         if isRun:
             self.cur_frame = (self.cur_frame + 1) % 5
@@ -218,6 +223,7 @@ def initUI(player):
     for i in range(player.hp):
         hp1 = pygame.sprite.Sprite(ui_group)
         hp1.image = load_image('life.png')
+        hp1.image = pygame.transform.scale(hp1.image, (tile_width, tile_height))
         hp1.rect = hp1.image.get_rect()
         hp1.rect.x = x
         hp1.rect.y = 10
@@ -230,6 +236,7 @@ def update_UI(current_hp):
     x = 10 + 50 * player.hp
     hp1 = pygame.sprite.Sprite(ui_group)
     hp1.image = load_image('life.png')
+    hp1.image = pygame.transform.scale(hp1.image, (tile_width, tile_height))
     hp1.rect = hp1.image.get_rect()
     hp1.rect.x = x
     hp1.rect.y = 10
@@ -329,6 +336,7 @@ class Loot(pygame.sprite.Sprite):
     def __init__(self, box):
         super().__init__(all_sprites)
         self.image = tile_image['health']
+        self.image = pygame.transform.scale(self.image, (tile_width, tile_height))
         self.rect = box.rect
         self.rect.top = box.rect.bottom
 
@@ -387,6 +395,8 @@ if __name__ == '__main__':
                 if vector == 1:
                     vector *= -1
                     player.image = pygame.transform.flip(player.image, True, False)
+                player.vector = 1
+
                 horizontal_movement(player, vector)
             elif keys[pygame.K_RIGHT]:
                 isRun = True
@@ -395,6 +405,7 @@ if __name__ == '__main__':
                 if vector == -1:
                     vector *= -1
                     player.image = pygame.transform.flip(player.image, True, False)
+                player.vector = 1
                 horizontal_movement(player, vector)
             else:
                 isRun = False

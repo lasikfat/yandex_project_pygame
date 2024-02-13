@@ -52,7 +52,7 @@ tile_image = {'sky': load_image('fon.jpg'),
               'enemy': load_image('mar.png'),
               'trap': load_image('bomb.png')}
 
-player_image = load_image('mar.png')
+player_image = load_image('mar1.png')
 tile_width = tile_height = 50
 tile_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
@@ -71,6 +71,7 @@ class Tile(pygame.sprite.Sprite):
             ground_group.add(self)
         if tile_type == 'enemy':
             enemy_group.add(self)
+            self.image = pygame.transform.scale(self.image, (tile_width, tile_height))
         if tile_type == 'trap':
             trap_group.add(self)
 
